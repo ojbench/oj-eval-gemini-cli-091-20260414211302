@@ -4,6 +4,66 @@
 
 using namespace std;
 
+namespace FastIO {
+    const int BUF_SIZE = 1 << 20;
+    char buf[BUF_SIZE], *p1 = buf, *p2 = buf;
+    inline char gc() {
+        if (p1 == p2) {
+            p2 = (p1 = buf) + fread(buf, 1, BUF_SIZE, stdin);
+            if (p1 == p2) return EOF;
+        }
+        return *p1++;
+    }
+    template<typename T>
+    inline bool read(T &x) {
+        char c = gc();
+        bool sign = false;
+        while (c != EOF && (c < '0' || c > '9')) {
+            if (c == '-') sign = true;
+            c = gc();
+        }
+        if (c == EOF) return false;
+        x = 0;
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = gc();
+        }
+        if (sign) x = -x;
+        return true;
+    }
+    char out_buf[BUF_SIZE], *out_p = out_buf;
+    inline void flush() {
+        fwrite(out_buf, 1, out_p - out_buf, stdout);
+        out_p = out_buf;
+    }
+    inline void pc(char c) {
+        if (out_p - out_buf == BUF_SIZE) flush();
+        *out_p++ = c;
+    }
+    template<typename T>
+    inline void write(T x) {
+        if (x < 0) {
+            pc('-');
+            x = -x;
+        }
+        if (x == 0) {
+            pc('0');
+            return;
+        }
+        char tmp[20];
+        int cnt = 0;
+        while (x > 0) {
+            tmp[cnt++] = (x % 10) + '0';
+            x /= 10;
+        }
+        while (cnt > 0) pc(tmp[--cnt]);
+    }
+    inline void writes(const char* s) {
+        while (*s) pc(*s++);
+    }
+}
+using namespace FastIO;
+
 struct __attribute__((packed)) Operation {
     unsigned int type_a;
     long long b;
@@ -18,7 +78,7 @@ struct Node {
     int sum;
 };
 
-const int MAX_NODES = 20000000;
+const int MAX_NODES = 40000000;
 Node tr[MAX_NODES];
 int node_cnt = 0;
 
@@ -128,19 +188,19 @@ int main() {
     vals.reserve(400000);
     c_vals.reserve(50000);
     root.reserve(200000);
-    root.push_back(0); // root[0] = 0
+    root.push_back(0);
 
     int op;
-    while (scanf("%d", &op) != EOF) {
+    while (read(op)) {
         int a;
         long long b = 0, c = 0;
         if (op == 0 || op == 1 || op == 3) {
-            scanf("%d%lld", &a, &b);
+            read(a); read(b);
             vals.push_back(b);
         } else if (op == 2) {
-            scanf("%d", &a);
+            read(a);
         } else if (op == 4) {
-            scanf("%d%lld%lld", &a, &b, &c);
+            read(a); read(b); read(c);
             vals.push_back(b);
             vals.push_back(c);
             c_vals.push_back(c);
@@ -201,12 +261,12 @@ int main() {
             case 3: {
                 int x = get_id(b);
                 if (x != -1 && find(root[a], 0, M - 1, x)) {
-                    printf("true\n");
+                    writes("true\n");
                     it_a = a;
                     val = b;
                     valid = 1;
                 } else {
-                    printf("false\n");
+                    writes("false\n");
                 }
                 break;
             }
@@ -218,9 +278,10 @@ int main() {
                 else r_id--;
                 
                 if (l_id != -1 && l_id <= r_id) {
-                    printf("%d\n", query_range(root[a], 0, M - 1, l_id, r_id));
+                    write(query_range(root[a], 0, M - 1, l_id, r_id));
+                    pc('\n');
                 } else {
-                    printf("0\n");
+                    writes("0\n");
                 }
                 break;
             }
@@ -235,9 +296,9 @@ int main() {
                     }
                 }
                 if (valid) {
-                    printf("%lld\n", val);
+                    write(val); pc('\n');
                 } else {
-                    printf("-1\n");
+                    writes("-1\n");
                 }
                 break;
             }
@@ -252,13 +313,14 @@ int main() {
                     }
                 }
                 if (valid) {
-                    printf("%lld\n", val);
+                    write(val); pc('\n');
                 } else {
-                    printf("-1\n");
+                    writes("-1\n");
                 }
                 break;
             }
         }
     }
+    flush();
     return 0;
 }
