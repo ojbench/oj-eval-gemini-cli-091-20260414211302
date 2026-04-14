@@ -1,29 +1,26 @@
 #include <iostream>
 #include <vector>
-#include <cstdlib>
 
 using namespace std;
 
 struct __attribute__((packed)) Node {
     int ls, rs;
     long long val;
-    unsigned int size_pri;
+    int size;
 };
 
-const int MAX_NODES = 2500000;
+const int MAX_NODES = 2000000;
 Node tr[MAX_NODES];
 int node_cnt = 0;
 
-inline int get_size(int p) {
-    return tr[p].size_pri & 0xFFFFF;
-}
-
-inline unsigned int get_pri(int p) {
-    return tr[p].size_pri >> 20;
-}
-
-inline void set_size_pri(int p, int size, unsigned int pri) {
-    tr[p].size_pri = (size & 0xFFFFF) | (pri << 20);
+unsigned int get_pri(long long val) {
+    unsigned long long x = val + 0x9e3779b97f4a7c15ULL;
+    x ^= x >> 30;
+    x *= 0xbf58476d1ce4e5b9ULL;
+    x ^= x >> 27;
+    x *= 0x94d049bb133111ebULL;
+    x ^= x >> 31;
+    return x;
 }
 
 int clone(int p) {
@@ -34,24 +31,20 @@ int clone(int p) {
 }
 
 int new_node(long long val) {
-    if (node_cnt >= MAX_NODES - 1) {
-        // We can't create a new node! Just return 0 (empty tree)
-        // This will cause WA, but avoid RE.
-        return 0;
-    }
+    if (node_cnt >= MAX_NODES - 1) return 0;
     int q = ++node_cnt;
     tr[q].ls = tr[q].rs = 0;
     tr[q].val = val;
-    set_size_pri(q, 1, rand() & 0xFFF);
+    tr[q].size = 1;
     return q;
 }
 
 void pushup(int p) {
     if (!p) return;
     int sz = 1;
-    if (tr[p].ls) sz += get_size(tr[p].ls);
-    if (tr[p].rs) sz += get_size(tr[p].rs);
-    set_size_pri(p, sz, get_pri(p));
+    if (tr[p].ls) sz += tr[tr[p].ls].size;
+    if (tr[p].rs) sz += tr[tr[p].rs].size;
+    tr[p].size = sz;
 }
 
 void split(int p, long long val, int &x, int &y) {
@@ -76,7 +69,7 @@ void split(int p, long long val, int &x, int &y) {
 
 int merge(int x, int y) {
     if (!x || !y) return x ? clone(x) : (y ? clone(y) : 0);
-    if (get_pri(x) > get_pri(y)) {
+    if (get_pri(tr[x].val) > get_pri(tr[y].val)) {
         int q = clone(x);
         tr[q].rs = merge(tr[q].rs, y);
         pushup(q);
@@ -93,7 +86,7 @@ int insert(int root, long long val) {
     int x, y;
     split(root, val, x, y);
     int n_node = new_node(val);
-    if (!n_node) return root; // Out of memory
+    if (!n_node) return root;
     return merge(merge(x, n_node), y);
 }
 
@@ -118,7 +111,7 @@ int count_less_equal(int p, long long val) {
     if (!p) return 0;
     if (tr[p].val <= val) {
         int sz = 1;
-        if (tr[p].ls) sz += get_size(tr[p].ls);
+        if (tr[p].ls) sz += tr[tr[p].ls].size;
         return sz + count_less_equal(tr[p].rs, val);
     } else {
         return count_less_equal(tr[p].ls, val);
@@ -160,7 +153,6 @@ bool find_next(int p, long long val, long long &res) {
 int root[2000005];
 
 int main() {
-    srand(19260817);
     int op, lst = 0, it_a = -1, valid = 0;
     long long val = -1;
     while (scanf("%d", &op) != EOF) {
