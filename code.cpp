@@ -24,14 +24,14 @@ unsigned int get_pri(long long val) {
 }
 
 int clone(int p) {
-    if (node_cnt >= MAX_NODES - 1) return p;
+    if (node_cnt >= MAX_NODES - 1) exit(1);
     int q = ++node_cnt;
     tr[q] = tr[p];
     return q;
 }
 
 int new_node(long long val) {
-    if (node_cnt >= MAX_NODES - 1) return 0;
+    if (node_cnt >= MAX_NODES - 1) exit(1);
     int q = ++node_cnt;
     tr[q].ls = tr[q].rs = 0;
     tr[q].val = val;
