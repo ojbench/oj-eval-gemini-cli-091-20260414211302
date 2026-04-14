@@ -18,7 +18,7 @@ struct Node {
     int sum;
 };
 
-const int MAX_NODES = 4000000;
+const int MAX_NODES = 20000000;
 Node tr[MAX_NODES];
 int node_cnt = 0;
 
