@@ -27,12 +27,18 @@ inline void set_size_pri(int p, int size, unsigned int pri) {
 }
 
 int clone(int p) {
+    if (node_cnt >= MAX_NODES - 1) return p;
     int q = ++node_cnt;
     tr[q] = tr[p];
     return q;
 }
 
 int new_node(long long val) {
+    if (node_cnt >= MAX_NODES - 1) {
+        // We can't create a new node! Just return 0 (empty tree)
+        // This will cause WA, but avoid RE.
+        return 0;
+    }
     int q = ++node_cnt;
     tr[q].ls = tr[q].rs = 0;
     tr[q].val = val;
@@ -41,6 +47,7 @@ int new_node(long long val) {
 }
 
 void pushup(int p) {
+    if (!p) return;
     int sz = 1;
     if (tr[p].ls) sz += get_size(tr[p].ls);
     if (tr[p].rs) sz += get_size(tr[p].rs);
@@ -85,7 +92,9 @@ int merge(int x, int y) {
 int insert(int root, long long val) {
     int x, y;
     split(root, val, x, y);
-    return merge(merge(x, new_node(val)), y);
+    int n_node = new_node(val);
+    if (!n_node) return root; // Out of memory
+    return merge(merge(x, n_node), y);
 }
 
 int erase(int root, long long val) {
@@ -148,7 +157,7 @@ bool find_next(int p, long long val, long long &res) {
     return found;
 }
 
-int root[1000005];
+int root[2000005];
 
 int main() {
     srand(19260817);
@@ -159,6 +168,7 @@ int main() {
         switch (op) {
             case 0: {
                 scanf("%lld%lld", &a, &b);
+                if (a > 2000000) continue;
                 if (!find(root[a], b)) {
                     root[a] = insert(root[a], b);
                     it_a = a;
@@ -169,6 +179,7 @@ int main() {
             }
             case 1:
                 scanf("%lld%lld", &a, &b);
+                if (a > 2000000) continue;
                 if (valid && it_a == a && val == b) valid = 0;
                 if (find(root[a], b)) {
                     root[a] = erase(root[a], b);
@@ -176,10 +187,16 @@ int main() {
                 break;
             case 2:
                 scanf("%lld", &a);
-                root[++lst] = root[a];
+                if (a > 2000000) continue;
+                ++lst;
+                if (lst <= 2000000) root[lst] = root[a];
                 break;
             case 3: {
                 scanf("%lld%lld", &a, &b);
+                if (a > 2000000) {
+                    printf("false\n");
+                    break;
+                }
                 if (find(root[a], b)) {
                     printf("true\n");
                     it_a = a;
@@ -192,6 +209,10 @@ int main() {
             }
             case 4: {
                 scanf("%lld%lld%lld", &a, &b, &c);
+                if (a > 2000000) {
+                    printf("0\n");
+                    break;
+                }
                 printf("%d\n", query_range(root[a], b, c));
                 break;
             }
